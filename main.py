@@ -6,17 +6,18 @@ import logging
 import sqlite3
 import os
 from together import Together
+from dotenv import load_dotenv
 
+load_dotenv()
 app = FastAPI()
-
+#"b3hjjklliuytrfbjjh393f5gggg8344d74kkkjjhd80kkkkkk23d86d6efffffffffffffffffffffffffffff,280,,b6701ffghjjkkkksddf80,,g,,,,ghjjf3b0kl9e;gnm,"
 logging.basicConfig(level=logging.INFO)
 
-TOGETHERAI_API_KEY = "b3393f58344d74d8023d86d6280b670180c5a5b3db2701c2f3b09e7c88f2d3e1"
+TOGETHERAI_API_KEY = os.getenv("TOGETHERAI_API_KEY")
 client = Together(api_key=TOGETHERAI_API_KEY)
 
 DB_FILE = "conversation_history.db"
 
-# Initialize SQLite DB
 def init_db():
     if not os.path.exists(DB_FILE):
         conn = sqlite3.connect(DB_FILE)
@@ -67,16 +68,13 @@ YOU THRIVE AS THE DEVIL’S ADVOCATE—FLIPPING ARGUMENTS INSIDE OUT JUST TO WAT
             model_name = "Gryphe/MythoMax-L2-13b"
             mode = "Normal Argue Mode"
 
-        # Get conversation history for the username
         past_arguments = get_conversation_history(username)
 
-        # Merge past arguments with current query
         messages = [{"role": "system", "content": prompt}]
         for past in past_arguments:
             messages.append({"role": "user", "content": past[0]})
             messages.append({"role": "assistant", "content": past[1]})
 
-        # Include the current query
         messages.append({"role": "user", "content": user_query})
 
         response = client.chat.completions.create(
@@ -85,14 +83,12 @@ YOU THRIVE AS THE DEVIL’S ADVOCATE—FLIPPING ARGUMENTS INSIDE OUT JUST TO WAT
         )
         ai_response = response.choices[0].message.content
 
-        # Save conversation to the database
         save_conversation(username, user_query, ai_response, mode)
 
         return {
             "username": username,
             "query": user_query,
             "response": ai_response,
-            "past_arguments": past_arguments,
             "mode": mode
         }
 
